@@ -86,8 +86,8 @@ BluVoyage/
 5. **Set up environment variables**:
    Create a `.env` file in the backend directory:
    ```env
-   QLOO_API_KEY=your_qloo_api_key_here
    GOOGLE_API_KEY=your_google_api_key_here
+   GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
    PORT=10000
    ```
 
@@ -124,9 +124,9 @@ The API will be available at `http://localhost:10000`
 
 ### Required API Keys
 
-1. **QLOO API Key**: 
-   - Sign up at [QLOO Developer Portal](https://qloo.com)
-   - Get your API key for cultural recommendations
+1. **Google Generative AI API Key**: 
+   - Sign up at [Google AI Studio](https://aistudio.google.com)
+   - Get your API key for itinerary generation
 
 2. **Google API Key**:
    - Create a project in [Google Cloud Console](https://console.cloud.google.com)

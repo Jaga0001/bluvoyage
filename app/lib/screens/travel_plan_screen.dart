@@ -97,7 +97,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                           width: size,
                           height: size,
                           decoration: BoxDecoration(
-                            color: Color(0xFF3B82F6).withOpacity(opacity),
+                            color: Color(0xFF3B82F6).withValues(alpha: opacity),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -144,7 +144,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -192,7 +192,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0xFFDC2626).withOpacity(0.3),
+                    color: Color(0xFFDC2626).withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: Offset(0, 4),
                   ),
@@ -389,7 +389,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                       decoration: BoxDecoration(
                         color: isSelected
                             ? Colors.white
-                            : Color(0xFF3B82F6).withOpacity(0.1),
+                            : Color(0xFF3B82F6).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Center(
@@ -418,7 +418,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: isSelected
-                            ? Colors.white.withOpacity(0.8)
+                            ? Colors.white.withValues(alpha: 0.8)
                             : Colors.grey.shade600,
                       ),
                       maxLines: 2,
@@ -503,7 +503,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF3B82F6).withOpacity(0.3),
+            color: Color(0xFF3B82F6).withValues(alpha: 0.3),
             blurRadius: 20,
             offset: Offset(0, 10),
           ),
@@ -515,7 +515,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(30),
             ),
             child: Center(
@@ -547,7 +547,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                   day.theme,
                   style: GoogleFonts.inter(
                     fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -560,13 +560,18 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
   }
 
   Widget _buildActivitiesList(List<Activity> activities, bool isLargeScreen) {
+    final responsiveGap = isLargeScreen ? 32.0 : 24.0;
+    
     return Column(
       children: activities.asMap().entries.map((entry) {
         final index = entry.key;
         final activity = entry.value;
         final isLast = index == activities.length - 1;
 
-        return _buildActivityCard(activity, isLast, isLargeScreen);
+        return Padding(
+          padding: EdgeInsets.only(bottom: isLast ? 0 : responsiveGap),
+          child: _buildActivityCard(activity, isLast, isLargeScreen),
+        );
       }).toList(),
     );
   }
@@ -620,11 +625,9 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
     bool isLast,
     bool isLargeScreen,
   ) {
-    return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : 24),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
           // Timeline
           Column(
             children: [
@@ -638,7 +641,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                     BoxShadow(
                       color: _getCategoryColor(
                         activity.category,
-                      ).withOpacity(0.3),
+                      ).withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: Offset(0, 4),
                     ),
@@ -671,7 +674,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     blurRadius: 15,
                     offset: Offset(0, 8),
                   ),
@@ -689,7 +692,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Color(0xFF3B82F6).withOpacity(0.1),
+                          color: Color(0xFF3B82F6).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -710,7 +713,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                         decoration: BoxDecoration(
                           color: _getCategoryColor(
                             activity.category,
-                          ).withOpacity(0.1),
+                          ).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -725,7 +728,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                     ],
                   ),
 
-                  SizedBox(height: 16),
+                    SizedBox(height: isLargeScreen ? 20 : 16),
 
                   // Location with Maps Button
                   Row(
@@ -737,7 +740,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                             Text(
                               activity.location.name,
                               style: GoogleFonts.inter(
-                                fontSize: isLargeScreen ? 20 : 18,
+                                fontSize: isLargeScreen ? 22 : 18,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF1E40AF),
                               ),
@@ -781,7 +784,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Color(0xFF4285F4).withOpacity(0.3),
+                                color: Color(0xFF4285F4).withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 offset: Offset(0, 4),
                               ),
@@ -823,29 +826,29 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                     ],
                   ),
 
-                  SizedBox(height: 12),
+                  SizedBox(height: isLargeScreen ? 16 : 12),
 
                   // Description
                   Text(
                     activity.description,
                     style: GoogleFonts.inter(
-                      fontSize: 15,
+                      fontSize: isLargeScreen ? 16 : 15,
                       color: Colors.grey.shade700,
                       height: 1.5,
                     ),
                   ),
 
                   if (activity.culturalConnection.isNotEmpty) ...[
-                    SizedBox(height: 16),
+                    SizedBox(height: isLargeScreen ? 20 : 16),
 
                     // Cultural Connection
                     Container(
-                      padding: EdgeInsets.all(16),
+                      padding: EdgeInsets.all(isLargeScreen ? 20 : 16),
                       decoration: BoxDecoration(
                         color: Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Color(0xFF3B82F6).withOpacity(0.2),
+                          color: Color(0xFF3B82F6).withValues(alpha: 0.2),
                           width: 1,
                         ),
                       ),
@@ -857,24 +860,24 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                               Icon(
                                 Icons.lightbulb_outline,
                                 color: Color(0xFF3B82F6),
-                                size: 20,
+                                size: isLargeScreen ? 24 : 20,
                               ),
-                              SizedBox(width: 8),
+                              SizedBox(width: isLargeScreen ? 12 : 8),
                               Text(
                                 'Why this matches your taste',
                                 style: GoogleFonts.inter(
-                                  fontSize: 14,
+                                  fontSize: isLargeScreen ? 15 : 14,
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFF3B82F6),
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 8),
+                          SizedBox(height: isLargeScreen ? 12 : 8),
                           Text(
                             activity.culturalConnection,
                             style: GoogleFonts.inter(
-                              fontSize: 14,
+                              fontSize: isLargeScreen ? 15 : 14,
                               color: Colors.grey.shade600,
                               height: 1.4,
                             ),
@@ -888,8 +891,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   Color _getCategoryColor(String category) {

@@ -82,6 +82,8 @@ class _PromptScreenState extends State<PromptScreen>
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth > 1200;
+    final isMediumScreen = screenWidth > 800 && screenWidth <= 1200;
+    final isSmallScreen = screenWidth <= 800;
 
     return Scaffold(
       body: AnimatedBuilder(
@@ -122,31 +124,40 @@ class _PromptScreenState extends State<PromptScreen>
 
                 FadeTransition(
                   opacity: _fadeAnimation,
-                  child: Column(
-                    children: [
-                      // Top App Bar
-                      _buildTopAppBar(),
+                  child: SafeArea(
+                    child: Column(
+                      children: [
+                        // Top App Bar
+                        _buildTopAppBar(isMediumScreen),
 
-                      // Main Content
-                      Expanded(
-                        child: Center(
-                          child: Container(
-                            width: isLargeScreen ? 800 : double.infinity,
-                            margin: EdgeInsets.all(24),
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: Offset(0, 0.3),
-                                end: Offset.zero,
-                              ).animate(_formAnimation),
-                              child: FadeTransition(
-                                opacity: _formAnimation,
-                                child: _buildMainCard(isLargeScreen),
-                              ),
-                            ),
-                          ),
+                        // Main Content
+                        Expanded(
+                          child: isMediumScreen
+                              ? Row(
+                                  children: [
+                                    // Sidebar for medium screens
+                                    if (!isSmallScreen)
+                                      Container(
+                                        width: 280,
+                                        color: Colors.white.withOpacity(0.95),
+                                        child: _buildSidebar(),
+                                      ),
+                                    // Main form area
+                                    Expanded(
+                                      child: _buildMainContent(
+                                        isLargeScreen,
+                                        isMediumScreen,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : _buildMainContent(
+                                  isLargeScreen,
+                                  isMediumScreen,
+                                ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -157,9 +168,12 @@ class _PromptScreenState extends State<PromptScreen>
     );
   }
 
-  Widget _buildTopAppBar() {
+  Widget _buildTopAppBar(bool isMediumScreen) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 1200;
+
     return Container(
-      height: 80,
+      height: isLargeScreen ? 90 : 70,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -171,20 +185,26 @@ class _PromptScreenState extends State<PromptScreen>
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 24),
+        padding: EdgeInsets.symmetric(horizontal: isLargeScreen ? 32 : 24),
         child: Row(
           children: [
             IconButton(
-              icon: Icon(Icons.arrow_back, color: Color(0xFF1E40AF), size: 24),
+              icon: Icon(
+                Icons.arrow_back,
+                color: Color(0xFF1E40AF),
+                size: isLargeScreen ? 28 : 24,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
-            SizedBox(width: 16),
-            Text(
-              'Plan Your Journey',
-              style: GoogleFonts.montserrat(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1E40AF),
+            SizedBox(width: isLargeScreen ? 24 : 16),
+            Expanded(
+              child: Text(
+                'Plan Your Journey',
+                style: GoogleFonts.montserrat(
+                  fontSize: isLargeScreen ? 28 : 24,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E40AF),
+                ),
               ),
             ),
           ],
@@ -193,11 +213,105 @@ class _PromptScreenState extends State<PromptScreen>
     );
   }
 
+  Widget _buildMainContent(bool isLargeScreen, bool isMediumScreen) {
+    return Center(
+      child: Container(
+        width: isLargeScreen
+            ? 800
+            : (isMediumScreen ? double.infinity : double.infinity),
+        margin: EdgeInsets.all(isLargeScreen ? 32 : 24),
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: Offset(0, 0.3),
+            end: Offset.zero,
+          ).animate(_formAnimation),
+          child: FadeTransition(
+            opacity: _formAnimation,
+            child: _buildMainCard(isLargeScreen),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSidebar() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF3B82F6), Color(0xFF1E40AF)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0xFF3B82F6).withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(Icons.travel_explore, color: Colors.white, size: 32),
+          ),
+          SizedBox(height: 24),
+          Text(
+            'BluVoyage',
+            style: GoogleFonts.montserrat(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1E40AF),
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'AI-Powered Journey Planning',
+            style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade600),
+          ),
+          SizedBox(height: 32),
+          _buildSidebarInfo('Travel Preferences', 'Tell us what interests you'),
+          SizedBox(height: 24),
+          _buildSidebarInfo('AI Analysis', 'We personalize your itinerary'),
+          SizedBox(height: 24),
+          _buildSidebarInfo('Get Exploring', 'Download your perfect plan'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarInfo(String title, String subtitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1E40AF),
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade600),
+        ),
+      ],
+    );
+  }
+
   Widget _buildMainCard(bool isLargeScreen) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMediumScreen = screenWidth > 800 && screenWidth <= 1200;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(isLargeScreen ? 28 : 24),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -209,7 +323,12 @@ class _PromptScreenState extends State<PromptScreen>
       child: Column(
         children: [
           // Form Content
-          Expanded(child: _buildPromptPage(isLargeScreen)),
+          Expanded(
+            child: _buildPromptPage(
+              isLargeScreen,
+              isMediumScreen: isMediumScreen,
+            ),
+          ),
 
           // Generate Button
           _buildGenerateButton(),
@@ -218,9 +337,11 @@ class _PromptScreenState extends State<PromptScreen>
     );
   }
 
-  Widget _buildPromptPage(bool isLargeScreen) {
+  Widget _buildPromptPage(bool isLargeScreen, {bool isMediumScreen = false}) {
+    final padding = isLargeScreen ? 40 : (isMediumScreen ? 32 : 28);
+
     return SingleChildScrollView(
-      padding: EdgeInsets.all(32),
+      padding: EdgeInsets.all(padding.toDouble()),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -229,50 +350,58 @@ class _PromptScreenState extends State<PromptScreen>
             "Tell us about your perfect trip",
             "Describe your travel desires in one sentence",
             Icons.edit_outlined,
+            isLargeScreen: isLargeScreen,
           ),
 
-          SizedBox(height: 32),
+          SizedBox(height: isLargeScreen ? 40 : 32),
 
           // Prompt Field - moved up to be first
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade300, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: Offset(0, 5),
-                ),
-              ],
-            ),
-            child: TextField(
-              controller: _promptController,
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'I want to go to...',
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.all(20),
-                hintStyle: GoogleFonts.inter(
-                  color: Colors.grey.shade500,
-                  fontSize: 16,
-                  height: 1.5,
-                ),
-              ),
-              style: GoogleFonts.inter(fontSize: 16, height: 1.5),
-            ),
-          ),
+          _buildPromptField(isLargeScreen),
 
-          SizedBox(height: 32),
+          SizedBox(height: isLargeScreen ? 40 : 32),
 
           // Example sentences as clickable buttons
-          _buildExampleButtonsSection(),
+          _buildExampleButtonsSection(isLargeScreen),
         ],
       ),
     );
   }
 
-  Widget _buildExampleButtonsSection() {
+  Widget _buildPromptField(bool isLargeScreen) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade300, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _promptController,
+        maxLines: 4,
+        decoration: InputDecoration(
+          hintText: 'I want to go to...',
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.all(isLargeScreen ? 24 : 20),
+          hintStyle: GoogleFonts.inter(
+            color: Colors.grey.shade500,
+            fontSize: isLargeScreen ? 17 : 16,
+            height: 1.5,
+          ),
+        ),
+        style: GoogleFonts.inter(
+          fontSize: isLargeScreen ? 17 : 16,
+          height: 1.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExampleButtonsSection(bool isLargeScreen) {
     final examples = [
       "I want to go to Chennai for 3 days I love Frank Ocean, Studio Ghibli films, and Japanese streetwear.",
       "My vibe is Taylor Swift, classic romantic films, and matcha desserts.",
@@ -286,12 +415,12 @@ class _PromptScreenState extends State<PromptScreen>
         Text(
           'Try these examples:',
           style: GoogleFonts.inter(
-            fontSize: 16,
+            fontSize: isLargeScreen ? 17 : 16,
             fontWeight: FontWeight.w600,
             color: Color(0xFF3B82F6),
           ),
         ),
-        SizedBox(height: 16),
+        SizedBox(height: isLargeScreen ? 20 : 16),
         ...examples
             .map(
               (example) => GestureDetector(
@@ -301,8 +430,8 @@ class _PromptScreenState extends State<PromptScreen>
                   });
                 },
                 child: Container(
-                  margin: EdgeInsets.only(bottom: 12),
-                  padding: EdgeInsets.all(16),
+                  margin: EdgeInsets.only(bottom: isLargeScreen ? 16 : 12),
+                  padding: EdgeInsets.all(isLargeScreen ? 20 : 16),
                   decoration: BoxDecoration(
                     color: Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
@@ -316,7 +445,7 @@ class _PromptScreenState extends State<PromptScreen>
                         child: Text(
                           example,
                           style: GoogleFonts.inter(
-                            fontSize: 14,
+                            fontSize: isLargeScreen ? 15 : 14,
                             color: Colors.grey.shade700,
                             height: 1.4,
                           ),
@@ -332,18 +461,23 @@ class _PromptScreenState extends State<PromptScreen>
     );
   }
 
-  Widget _buildPageHeader(String title, String subtitle, IconData icon) {
+  Widget _buildPageHeader(
+    String title,
+    String subtitle,
+    IconData icon, {
+    bool isLargeScreen = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 80,
-          height: 80,
+          width: isLargeScreen ? 100 : 80,
+          height: isLargeScreen ? 100 : 80,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [Color(0xFF3B82F6), Color(0xFF1E40AF)],
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(isLargeScreen ? 24 : 20),
             boxShadow: [
               BoxShadow(
                 color: Color(0xFF3B82F6).withOpacity(0.3),
@@ -352,22 +486,22 @@ class _PromptScreenState extends State<PromptScreen>
               ),
             ],
           ),
-          child: Icon(icon, size: 40, color: Colors.white),
+          child: Icon(icon, size: isLargeScreen ? 50 : 40, color: Colors.white),
         ),
-        SizedBox(height: 24),
+        SizedBox(height: isLargeScreen ? 32 : 24),
         Text(
           title,
           style: GoogleFonts.inter(
-            fontSize: 28,
+            fontSize: isLargeScreen ? 32 : 28,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E40AF),
           ),
         ),
-        SizedBox(height: 12),
+        SizedBox(height: isLargeScreen ? 16 : 12),
         Text(
           subtitle,
           style: GoogleFonts.inter(
-            fontSize: 16,
+            fontSize: isLargeScreen ? 17 : 16,
             color: Colors.grey.shade600,
             height: 1.5,
           ),
@@ -377,19 +511,22 @@ class _PromptScreenState extends State<PromptScreen>
   }
 
   Widget _buildGenerateButton() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 1200;
+
     return Container(
-      padding: EdgeInsets.all(24),
+      padding: EdgeInsets.all(isLargeScreen ? 32 : 24),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: Colors.grey.shade200)),
       ),
       child: SizedBox(
         width: double.infinity,
+        height: isLargeScreen ? 56 : 48,
         child: ElevatedButton(
           onPressed: _isGenerating ? null : _generateTravelPlan,
           style: ElevatedButton.styleFrom(
             backgroundColor: _isGenerating ? Colors.grey : Color(0xFF3B82F6),
-            padding: EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -411,7 +548,7 @@ class _PromptScreenState extends State<PromptScreen>
                     Text(
                       'Generating...',
                       style: GoogleFonts.inter(
-                        fontSize: 16,
+                        fontSize: isLargeScreen ? 17 : 16,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
@@ -421,7 +558,7 @@ class _PromptScreenState extends State<PromptScreen>
               : Text(
                   'Generate My Travel Plan',
                   style: GoogleFonts.inter(
-                    fontSize: 16,
+                    fontSize: isLargeScreen ? 17 : 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),

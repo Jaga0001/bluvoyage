@@ -690,6 +690,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildTravelPlansGrid(bool isLargeScreen, bool isMediumScreen) {
     int crossAxisCount = isLargeScreen ? 3 : (isMediumScreen ? 2 : 1);
+    double spacing = isLargeScreen ? 24 : 16;
+    double childAspectRatio = isLargeScreen ? 1.15 : 1.2;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -697,19 +699,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Text(
           'Your Travel Plans',
           style: GoogleFonts.inter(
-            fontSize: isLargeScreen ? 24 : 20,
+            fontSize: isLargeScreen ? 28 : 20,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E40AF),
           ),
         ),
-        SizedBox(height: 16),
+        SizedBox(height: isLargeScreen ? 24 : 16),
         Expanded(
           child: GridView.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.2,
+              crossAxisSpacing: spacing,
+              mainAxisSpacing: spacing,
+              childAspectRatio: childAspectRatio,
             ),
             itemCount: travelPlans.length,
             itemBuilder: (context, index) {

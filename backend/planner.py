@@ -1,6 +1,5 @@
 import os
 import json
-import aiohttp
 import asyncio
 import re
 from dotenv import load_dotenv
@@ -9,113 +8,20 @@ import google.generativeai as genai
 
 load_dotenv()
 
-QLOO_API_KEY = os.getenv("QLOO_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
-async def fetch(session, method, url, **kwargs):
-    # Filter out None values from params to prevent aiohttp errors
-    if 'params' in kwargs and kwargs['params']:
-        kwargs['params'] = {k: v for k, v in kwargs['params'].items() if v is not None}
-    
-    async with session.request(method, url, **kwargs) as response:
-        if response.status != 200:
-            print(f"API Error {response.status}: {await response.text()}")
-            return {}
-        return await response.json()
 
-async def get_entity_id(session, name, entity_type):
-    url = "https://hackathon.api.qloo.com/search"
-    headers = {"x-api-key": QLOO_API_KEY}
-    params = {"query": name, "types": entity_type}
-    data = await fetch(session, "GET", url, headers=headers, params=params)
-    
-    results = data.get("results", [])
-    if results:
-        entity = results[0]
-        entity_id = entity.get("entity_id") or entity.get("id") or entity.get("entity", {}).get("id")
-        return entity_id
-    return None
-
-async def get_recommendations(session, entity_id, domain):
-    if not entity_id:
-        return ["No recommendations found"]
-    
-    domain_mappings = {
-        "music": ["music", "artists", "artist"],
-        "movies": ["movies", "films", "film"], 
-        "fashion": ["fashion", "brands", "brand"]
-    }
-    
-    for domain_variant in domain_mappings.get(domain, [domain]):
-        url = f"https://hackathon.api.qloo.com/recommendations/{domain_variant}"
-        headers = {"x-api-key": QLOO_API_KEY, "Content-Type": "application/json"}
-        payload = {"ids": [entity_id], "count": 5}
-        data = await fetch(session, "POST", url, headers=headers, json=payload)
-        
-        recommendations = data.get("recommendations", [])
-        if recommendations:
-            rec_names = [r.get("name", "Unknown") for r in recommendations if r.get("name")]
-            return rec_names
-    
-    return [f"No {domain} recommendations found"]
-
-async def get_entity_with_fallback(session, name, entity_type):
-    """Get entity and extract useful info even if recommendations fail"""
-    url = "https://hackathon.api.qloo.com/search"
-    headers = {"x-api-key": QLOO_API_KEY}
-    params = {"query": name, "types": entity_type}
-    data = await fetch(session, "GET", url, headers=headers, params=params)
-    
-    results = data.get("results", [])
-    if results:
-        entity = results[0]
-        entity_id = entity.get("entity_id") or entity.get("id")
-        entity_name = entity.get("name", name)
-        
-        related_entities = []
-        tags = entity.get("tags", [])
-        for tag in tags[:3]:
-            if tag.get("type") in ["urn:tag:influenced_by:qloo", "urn:tag:genre:qloo"]:
-                tag_name = tag.get("name", "").replace("_", " ").title()
-                if tag_name and tag_name not in related_entities:
-                    related_entities.append(tag_name)
-        
-        return entity_id, entity_name, related_entities
-    
-    return None, name, []
 
 async def gather_preferences(music, movie, fashion):
-    async with aiohttp.ClientSession() as session:
-        music_data, movie_data, fashion_data = await asyncio.gather(
-            get_entity_with_fallback(session, music, "urn:entity:artist"),
-            get_entity_with_fallback(session, movie, "urn:entity:movie"),
-            get_entity_with_fallback(session, fashion, "urn:entity:brand"),
-        )
-        
-        music_recs = await get_recommendations(session, music_data[0], "music")
-        movie_recs = await get_recommendations(session, movie_data[0], "movies") 
-        fashion_recs = await get_recommendations(session, fashion_data[0], "fashion")
-        
-        if music_recs == ['No music recommendations found'] and music_data[2]:
-            music_recs = music_data[2][:3]
-            
-        if movie_recs == ['No movies recommendations found'] and movie_data[2]:
-            movie_recs = movie_data[2][:3]
-            
-        if fashion_recs == ['No fashion recommendations found'] and fashion_data[2]:
-            fashion_recs = fashion_data[2][:3]
-
-        if not music_recs or music_recs == ['No music recommendations found']:
-            music_recs = [music_data[1]]
-        if not movie_recs or movie_recs == ['No movies recommendations found']:
-            movie_recs = [movie_data[1]]
-        if not fashion_recs or fashion_recs == ['No fashion recommendations found']:
-            fashion_recs = [fashion_data[1]]
-
-        return {"music": music_recs, "movie": movie_recs, "fashion": fashion_recs}
+    """Return user preferences directly without external API calls"""
+    return {
+        "music": [music],
+        "movie": [movie],
+        "fashion": [fashion]
+    }
 
 def parse_user_input(user_input):
     """Extract preferences and destination from user input using AI"""
