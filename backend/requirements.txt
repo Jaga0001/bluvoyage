@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 python-dotenv
 requests
-google-generativeai
+google-genai
 googlemaps
 aiohttp
 httpx
