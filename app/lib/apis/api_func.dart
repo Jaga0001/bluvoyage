@@ -28,8 +28,7 @@ class ApiFunc {
   }
 
   Future<TravelPlan?> generateItinerary(String prompt) async {
-    const url =
-        'https://ai-travel-planner-rc97.onrender.com/generate-itinerary';
+    const url = 'https://bluvoyage.onrender.com/generate-itinerary';
 
     try {
       print('Making API request to: $url');
