@@ -41,14 +41,17 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
     )..repeat();
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
     );
 
     _backgroundAnimation =
-        ColorTween(begin: Color(0xFFF8FAFC), end: Color(0xFFF1F5F9)).animate(
+        ColorTween(
+          begin: const Color(0xFFF8FAFC),
+          end: const Color(0xFFEFF6FF),
+        ).animate(
           CurvedAnimation(
             parent: _backgroundController,
-            curve: Curves.easeInOut,
+            curve: Curves.easeInOutSine,
           ),
         );
 
@@ -66,10 +69,11 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isLargeScreen = screenWidth > 1200;
-    final isMediumScreen = screenWidth > 800 && screenWidth <= 1200;
+    final isDesktop = screenWidth > 1024;
+    final isMobile = screenWidth <= 600;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: AnimatedBuilder(
         animation: _backgroundAnimation,
         builder: (context, child) {
@@ -79,25 +83,27 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
               children: [
                 // Animated background particles
                 ...List.generate(
-                  6,
+                  8,
                   (index) => AnimatedBuilder(
                     animation: _particleController,
                     builder: (context, child) {
                       final progress =
-                          (_particleController.value + index * 0.2) % 1.0;
-                      final size = 2.0 + (index % 2) * 1.0;
-                      final opacity = (0.02 + (index % 3) * 0.01);
+                          (_particleController.value + index * 0.15) % 1.0;
+                      final size = 3.0 + (index % 3) * 1.5;
+                      final opacity = (0.015 + (index % 4) * 0.01);
 
                       return Positioned(
                         left:
-                            (screenWidth * (0.1 + (index % 5) * 0.2)) +
-                            math.sin(progress * 2 * math.pi + index) * 40,
+                            (screenWidth * (0.1 + (index % 6) * 0.15)) +
+                            math.sin(progress * 2 * math.pi + index) * 50,
                         top: MediaQuery.of(context).size.height * progress,
                         child: Container(
                           width: size,
                           height: size,
                           decoration: BoxDecoration(
-                            color: Color(0xFF3B82F6).withValues(alpha: opacity),
+                            color: const Color(
+                              0xFF3B82F6,
+                            ).withValues(alpha: opacity),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -106,27 +112,36 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
                   ),
                 ),
 
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Column(
-                    children: [
-                      // Top App Bar
-                      _buildTopAppBar(),
+                SafeArea(
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      children: [
+                        // Responsive Top App Bar
+                        _buildTopAppBar(isMobile),
 
-                      // Main Content
-                      Expanded(
-                        child: Row(
-                          children: [
-                            // Sidebar for day selection
-                            if (isLargeScreen || isMediumScreen)
-                              _buildDaySidebar(),
+                        // Mobile/Tablet Horizontal Day Selector
+                        if (!isDesktop &&
+                            widget.travelPlan.itinerary.days.isNotEmpty)
+                          _buildHorizontalDaySelector(),
 
-                            // Main content area
-                            Expanded(child: _buildMainContent(isLargeScreen)),
-                          ],
+                        // Main Content Area
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Sidebar for desktop only
+                              if (isDesktop) _buildDaySidebar(),
+
+                              // Main activity content
+                              Expanded(
+                                child: _buildMainContent(isDesktop, isMobile),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -137,94 +152,120 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
     );
   }
 
-  Widget _buildTopAppBar() {
+  Widget _buildTopAppBar(bool isMobile) {
     return Container(
-      height: 80,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 16 : 24,
+        vertical: isMobile ? 12 : 16,
+      ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withValues(alpha: 0.9),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 24),
-        child: Row(
-          children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back, color: Color(0xFF1E40AF), size: 24),
-              onPressed: () => Navigator.pop(context),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Color(0xFF1E40AF),
+              size: 20,
             ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.travelPlan.title,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1E40AF),
-                    ),
+            onPressed: () => Navigator.pop(context),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+          SizedBox(width: isMobile ? 12 : 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.travelPlan.title,
+                  style: GoogleFonts.montserrat(
+                    fontSize: isMobile ? 16 : 20,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
+                    letterSpacing: -0.5,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${widget.travelPlan.destination} • ${widget.travelPlan.duration}',
+                  style: GoogleFonts.inter(
+                    fontSize: isMobile ? 12 : 14,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: isMobile ? 8 : 16),
+          _buildDownloadButton(isMobile),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDownloadButton(bool isMobile) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+        ),
+        borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
+          onTap: () => _downloadPdf(),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12 : 16,
+              vertical: isMobile ? 8 : 10,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.picture_as_pdf,
+                  color: Colors.white,
+                  size: isMobile ? 16 : 18,
+                ),
+                if (!isMobile) ...[
+                  const SizedBox(width: 8),
                   Text(
-                    '${widget.travelPlan.destination} • ${widget.travelPlan.duration}',
+                    'Export PDF',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
                 ],
-              ),
+              ],
             ),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFFDC2626), Color(0xFFB91C1C)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xFFDC2626).withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => _downloadPdf(),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    child: Row(
-                      children: [
-                        Icon(Icons.download, color: Colors.white, size: 15),
-                        SizedBox(width: 8),
-                        Text(
-                          'Download PDF',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(width: 12),
-          ],
+          ),
         ),
       ),
     );
@@ -238,7 +279,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
         barrierDismissible: false,
         builder: (context) => Center(
           child: Container(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
@@ -246,16 +287,16 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(
+                const CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   'Generating PDF...',
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E40AF),
+                    color: const Color(0xFF1E40AF),
                   ),
                 ),
               ],
@@ -266,6 +307,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
 
       await PdfService.generateAndDownloadTravelPlan(widget.travelPlan);
 
+      if (!mounted) return;
       // Close loading dialog
       Navigator.of(context).pop();
 
@@ -284,6 +326,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       // Close loading dialog if still open
       Navigator.of(context).pop();
 
@@ -304,279 +347,6 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
     }
   }
 
-  Widget _buildDaySidebar() {
-    if (widget.travelPlan.itinerary.days.isEmpty) {
-      return Container(
-        width: 280,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(
-            right: BorderSide(color: Colors.grey.shade200, width: 1),
-          ),
-        ),
-        child: Center(
-          child: Text(
-            'No itinerary data available',
-            style: GoogleFonts.inter(fontSize: 16, color: Colors.grey.shade600),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      width: 280,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          right: BorderSide(color: Colors.grey.shade200, width: 1),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Itinerary',
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E40AF),
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  '${widget.travelPlan.itinerary.duration_days} days in ${widget.travelPlan.destination}',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              itemCount: widget.travelPlan.itinerary.days.length,
-              itemBuilder: (context, index) {
-                final day = widget.travelPlan.itinerary.days[index];
-                final isSelected = selectedDay == index;
-
-                return Container(
-                  margin: EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: isSelected ? Color(0xFF3B82F6) : Colors.transparent,
-                    border: Border.all(
-                      color: isSelected
-                          ? Color(0xFF3B82F6)
-                          : Colors.grey.shade200,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: ListTile(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    leading: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? Colors.white
-                            : Color(0xFF3B82F6).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '${day.day_number}',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: isSelected
-                                ? Color(0xFF3B82F6)
-                                : Color(0xFF1E40AF),
-                          ),
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      'Day ${day.day_number}',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected ? Colors.white : Color(0xFF1E40AF),
-                      ),
-                    ),
-                    subtitle: Text(
-                      day.theme,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: isSelected
-                            ? Colors.white.withValues(alpha: 0.8)
-                            : Colors.grey.shade600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onTap: () {
-                      setState(() {
-                        selectedDay = index;
-                      });
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMainContent(bool isLargeScreen) {
-    if (widget.travelPlan.itinerary.days.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.explore_off, size: 64, color: Colors.grey.shade400),
-            SizedBox(height: 16),
-            Text(
-              'No itinerary available',
-              style: GoogleFonts.inter(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'The travel plan doesn\'t contain any daily activities.',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.grey.shade500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (selectedDay >= widget.travelPlan.itinerary.days.length) {
-      selectedDay = 0;
-    }
-
-    final currentDay = widget.travelPlan.itinerary.days[selectedDay];
-
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isLargeScreen ? 32 : 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Day Header
-          _buildDayHeader(currentDay, isLargeScreen),
-          SizedBox(height: 32),
-
-          // Activities List
-          _buildActivitiesList(currentDay.activities, isLargeScreen),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDayHeader(TravelDay day, bool isLargeScreen) {
-    return Container(
-      padding: EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF3B82F6), Color(0xFF1E40AF)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xFF3B82F6).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Center(
-              child: Text(
-                '${day.day_number}',
-                style: GoogleFonts.montserrat(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Day ${day.day_number}',
-                  style: GoogleFonts.inter(
-                    fontSize: isLargeScreen ? 28 : 24,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  day.theme,
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActivitiesList(List<Activity> activities, bool isLargeScreen) {
-    final responsiveGap = isLargeScreen ? 32.0 : 24.0;
-    
-    return Column(
-      children: activities.asMap().entries.map((entry) {
-        final index = entry.key;
-        final activity = entry.value;
-        final isLast = index == activities.length - 1;
-
-        return Padding(
-          padding: EdgeInsets.only(bottom: isLast ? 0 : responsiveGap),
-          child: _buildActivityCard(activity, isLast, isLargeScreen),
-        );
-      }).toList(),
-    );
-  }
-
-  // Add this method for handling maps navigation
   Future<void> _openMapsLocation(String mapsLink) async {
     if (mapsLink.isNotEmpty) {
       final Uri url = Uri.parse(mapsLink);
@@ -620,309 +390,572 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
     }
   }
 
-  Widget _buildActivityCard(
-    Activity activity,
-    bool isLast,
-    bool isLargeScreen,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-          // Timeline
-          Column(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: _getCategoryColor(activity.category),
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _getCategoryColor(
-                        activity.category,
-                      ).withValues(alpha: 0.3),
-                      blurRadius: 10,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  _getCategoryIcon(activity.category),
-                  color: Colors.white,
-                  size: 24,
+  Widget _buildHorizontalDaySelector() {
+    return Container(
+      height: 70,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        itemCount: widget.travelPlan.itinerary.days.length,
+        itemBuilder: (context, index) {
+          final isSelected = selectedDay == index;
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: ChoiceChip(
+              label: Text(
+                'Day ${widget.travelPlan.itinerary.days[index].day_number}',
+              ),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) setState(() => selectedDay = index);
+              },
+              selectedColor: const Color(0xFF3B82F6),
+              backgroundColor: Colors.grey.shade100,
+              labelStyle: GoogleFonts.inter(
+                color: isSelected ? Colors.white : Colors.grey.shade700,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: isSelected
+                      ? const Color(0xFF3B82F6)
+                      : Colors.transparent,
                 ),
               ),
-              if (!isLast)
-                Container(
-                  width: 2,
-                  height: 80,
-                  color: Colors.grey.shade300,
-                  margin: EdgeInsets.symmetric(vertical: 8),
-                ),
-            ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDaySidebar() {
+    if (widget.travelPlan.itinerary.days.isEmpty) {
+      return Container(
+        width: 300,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(right: BorderSide(color: Colors.grey.shade200)),
+        ),
+        child: Center(
+          child: Text(
+            'No itinerary data',
+            style: GoogleFonts.inter(color: Colors.grey.shade500),
           ),
+        ),
+      );
+    }
 
-          SizedBox(width: 20),
-
-          // Activity Content
+    return Container(
+      width: 300,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(right: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Itinerary',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${widget.travelPlan.itinerary.duration_days} days in ${widget.travelPlan.destination}',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Expanded(
-            child: Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    blurRadius: 15,
-                    offset: Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Time and Category
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Color(0xFF3B82F6).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          activity.time,
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF3B82F6),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getCategoryColor(
-                            activity.category,
-                          ).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          activity.category.toUpperCase(),
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: _getCategoryColor(activity.category),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: widget.travelPlan.itinerary.days.length,
+              itemBuilder: (context, index) {
+                final day = widget.travelPlan.itinerary.days[index];
+                final isSelected = selectedDay == index;
 
-                    SizedBox(height: isLargeScreen ? 20 : 16),
-
-                  // Location with Maps Button
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              activity.location.name,
-                              style: GoogleFonts.inter(
-                                fontSize: isLargeScreen ? 22 : 18,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF1E40AF),
-                              ),
-                            ),
-                            if (activity.location.address.isNotEmpty) ...[
-                              SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on,
-                                    size: 16,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      activity.location.address,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 13,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      if (activity.location.maps_link.isNotEmpty) ...[
-                        SizedBox(width: 12),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Color(0xFF4285F4), Color(0xFF1E40AF)],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0xFF4285F4).withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(12),
-                              onTap: () => _openMapsLocation(
-                                activity.location.maps_link,
-                              ),
-                              child: Padding(
-                                padding: EdgeInsets.all(12),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.map,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'View on Maps',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-
-                  SizedBox(height: isLargeScreen ? 16 : 12),
-
-                  // Description
-                  Text(
-                    activity.description,
-                    style: GoogleFonts.inter(
-                      fontSize: isLargeScreen ? 16 : 15,
-                      color: Colors.grey.shade700,
-                      height: 1.5,
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: isSelected
+                        ? const Color(0xFFEFF6FF)
+                        : Colors.transparent,
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFFBFDBFE)
+                          : Colors.transparent,
                     ),
                   ),
-
-                  if (activity.culturalConnection.isNotEmpty) ...[
-                    SizedBox(height: isLargeScreen ? 20 : 16),
-
-                    // Cultural Connection
-                    Container(
-                      padding: EdgeInsets.all(isLargeScreen ? 20 : 16),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    leading: Container(
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
-                        color: Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Color(0xFF3B82F6).withValues(alpha: 0.2),
-                          width: 1,
+                        color: isSelected
+                            ? const Color(0xFF3B82F6)
+                            : Colors.grey.shade100,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${day.day_number}',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                            color: isSelected
+                                ? Colors.white
+                                : Colors.grey.shade600,
+                          ),
                         ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.lightbulb_outline,
-                                color: Color(0xFF3B82F6),
-                                size: isLargeScreen ? 24 : 20,
-                              ),
-                              SizedBox(width: isLargeScreen ? 12 : 8),
-                              Text(
-                                'Why this matches your taste',
-                                style: GoogleFonts.inter(
-                                  fontSize: isLargeScreen ? 15 : 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF3B82F6),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: isLargeScreen ? 12 : 8),
-                          Text(
-                            activity.culturalConnection,
-                            style: GoogleFonts.inter(
-                              fontSize: isLargeScreen ? 15 : 14,
-                              color: Colors.grey.shade600,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
+                    ),
+                    title: Text(
+                      'Day ${day.day_number}',
+                      style: GoogleFonts.inter(
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? const Color(0xFF1E3A8A)
+                            : const Color(0xFF334155),
                       ),
                     ),
-                  ],
-                ],
-              ),
+                    subtitle: Text(
+                      day.theme,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: isSelected
+                            ? const Color(0xFF2563EB)
+                            : Colors.grey.shade500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onTap: () => setState(() => selectedDay = index),
+                  ),
+                );
+              },
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMainContent(bool isDesktop, bool isMobile) {
+    if (widget.travelPlan.itinerary.days.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.explore_off, size: 48, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'No activities planned',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
       );
+    }
+
+    if (selectedDay >= widget.travelPlan.itinerary.days.length) {
+      selectedDay = 0;
+    }
+    final currentDay = widget.travelPlan.itinerary.days[selectedDay];
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(isMobile ? 16 : (isDesktop ? 40 : 24)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDayHeader(currentDay, isMobile),
+          SizedBox(height: isMobile ? 24 : 40),
+          _buildActivitiesList(currentDay.activities, isMobile),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDayHeader(TravelDay day, bool isMobile) {
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 20 : 32),
+      decoration: BoxDecoration(
+        image: const DecorationImage(
+          image: NetworkImage(
+            'https://images.unsplash.com/photo-1488085061387-422e29b40080?q=80&w=2000&auto=format&fit=crop',
+          ), // Optional abstract subtle background
+          fit: BoxFit.cover,
+          colorFilter: ColorFilter.mode(Color(0xFF1E3A8A), BlendMode.multiply),
+        ),
+        borderRadius: BorderRadius.circular(isMobile ? 16 : 24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1E3A8A).withValues(alpha: 0.15),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: isMobile ? 50 : 64,
+            height: isMobile ? 50 : 64,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.5),
+                width: 1,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                '${day.day_number}',
+                style: GoogleFonts.montserrat(
+                  fontSize: isMobile ? 20 : 28,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: isMobile ? 16 : 24),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Day ${day.day_number}',
+                  style: GoogleFonts.montserrat(
+                    fontSize: isMobile ? 22 : 32,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  day.theme,
+                  style: GoogleFonts.inter(
+                    fontSize: isMobile ? 14 : 16,
+                    color: Colors.white.withValues(alpha: 0.85),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivitiesList(List<Activity> activities, bool isMobile) {
+    return Column(
+      children: activities.asMap().entries.map((entry) {
+        final index = entry.key;
+        final activity = entry.value;
+        final isLast = index == activities.length - 1;
+
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Timeline Column
+              SizedBox(
+                width: isMobile ? 40 : 60,
+                child: Column(
+                  children: [
+                    Container(
+                      width: isMobile ? 36 : 48,
+                      height: isMobile ? 36 : 48,
+                      decoration: BoxDecoration(
+                        color: _getCategoryColor(activity.category),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _getCategoryColor(
+                              activity.category,
+                            ).withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        _getCategoryIcon(activity.category),
+                        color: Colors.white,
+                        size: isMobile ? 16 : 20,
+                      ),
+                    ),
+                    if (!isLast)
+                      Expanded(
+                        child: Container(
+                          width: 2,
+                          color: Colors.grey.shade200,
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              SizedBox(width: isMobile ? 12 : 24),
+              // Activity Card
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: isLast ? 0 : (isMobile ? 24.0 : 32.0),
+                  ),
+                  child: Container(
+                    padding: EdgeInsets.all(isMobile ? 16 : 24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade100),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.02),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header: Time & Category
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildChip(
+                              activity.time,
+                              const Color(0xFF3B82F6),
+                              Icons.access_time,
+                            ),
+                            _buildChip(
+                              activity.category.toUpperCase(),
+                              _getCategoryColor(activity.category),
+                              _getCategoryIcon(activity.category),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: isMobile ? 12 : 16),
+
+                        // Title & Location
+                        Text(
+                          activity.location.name,
+                          style: GoogleFonts.montserrat(
+                            fontSize: isMobile ? 18 : 20,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                        if (activity.location.address.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                size: 14,
+                                color: Colors.grey.shade500,
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  activity.location.address,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        SizedBox(height: isMobile ? 12 : 16),
+
+                        // Description
+                        Text(
+                          activity.description,
+                          style: GoogleFonts.inter(
+                            fontSize: isMobile ? 14 : 15,
+                            color: const Color(0xFF475569),
+                            height: 1.6,
+                          ),
+                        ),
+
+                        // Action Buttons / Cultural Connection
+                        if (activity.culturalConnection.isNotEmpty ||
+                            activity.location.maps_link.isNotEmpty)
+                          SizedBox(height: isMobile ? 16 : 20),
+
+                        if (activity.culturalConnection.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.auto_awesome,
+                                  color: Color(0xFFF59E0B),
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    activity.culturalConnection,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      color: const Color(0xFF64748B),
+                                      fontStyle: FontStyle.italic,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        if (activity.location.maps_link.isNotEmpty) ...[
+                          if (activity.culturalConnection.isNotEmpty)
+                            const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              onPressed: () => _openMapsLocation(
+                                activity.location.maps_link,
+                              ),
+                              icon: const Icon(Icons.map_outlined, size: 16),
+                              label: Text(
+                                'Open Map',
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFF2563EB),
+                                backgroundColor: const Color(0xFFEFF6FF),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildChip(String label, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'music':
-        return Color(0xFF8B5CF6);
+        return const Color(0xFF8B5CF6);
       case 'film':
-        return Color(0xFFF59E0B);
+        return const Color(0xFFF59E0B);
       case 'fashion':
-        return Color(0xFFEC4899);
+        return const Color(0xFFEC4899);
       case 'dining':
-        return Color(0xFF10B981);
+        return const Color(0xFF10B981);
       case 'hidden_gem':
-        return Color(0xFF3B82F6);
+        return const Color(0xFF0EA5E9);
       default:
-        return Color(0xFF6B7280);
+        return const Color(0xFF64748B);
     }
   }
 
   IconData _getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
       case 'music':
-        return Icons.music_note;
+        return Icons.headphones;
       case 'film':
-        return Icons.movie;
+        return Icons.movie_creation;
       case 'fashion':
-        return Icons.shopping_bag;
+        return Icons.checkroom;
       case 'dining':
         return Icons.restaurant;
       case 'hidden_gem':
-        return Icons.explore;
+        return Icons.diamond;
       default:
         return Icons.place;
     }
