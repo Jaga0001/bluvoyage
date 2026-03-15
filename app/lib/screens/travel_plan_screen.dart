@@ -35,7 +35,11 @@ const _categoryMap = {
   'music': _CategoryStyle(_Palette.violet, Icons.headphones_rounded, 'MUSIC'),
   'film': _CategoryStyle(_Palette.gold, Icons.movie_creation_rounded, 'FILM'),
   'fashion': _CategoryStyle(_Palette.rose, Icons.checkroom_rounded, 'FASHION'),
-  'dining': _CategoryStyle(_Palette.emerald, Icons.restaurant_rounded, 'DINING'),
+  'dining': _CategoryStyle(
+    _Palette.emerald,
+    Icons.restaurant_rounded,
+    'DINING',
+  ),
   'hidden_gem': _CategoryStyle(_Palette.sky, Icons.diamond_rounded, 'GEM'),
 };
 
@@ -74,17 +78,32 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
     _scrollCtrl = ScrollController()
       ..addListener(() {
         final elevated = _scrollCtrl.offset > 8;
-        if (elevated != _appBarElevated) setState(() => _appBarElevated = elevated);
+        if (elevated != _appBarElevated)
+          setState(() => _appBarElevated = elevated);
       });
 
-    _enterCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
-    _orbCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 18))..repeat();
-    _dayTransCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 340));
+    _enterCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _orbCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 18),
+    )..repeat();
+    _dayTransCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 340),
+    );
 
     _enterFade = CurvedAnimation(parent: _enterCtrl, curve: Curves.easeOut);
-    _enterSlide = Tween(begin: const Offset(0, 0.04), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _enterCtrl, curve: Curves.easeOutCubic));
-    _dayTransFade = CurvedAnimation(parent: _dayTransCtrl, curve: Curves.easeInOut);
+    _enterSlide = Tween(
+      begin: const Offset(0, 0.04),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _enterCtrl, curve: Curves.easeOutCubic));
+    _dayTransFade = CurvedAnimation(
+      parent: _dayTransCtrl,
+      curve: Curves.easeInOut,
+    );
 
     _enterCtrl.forward();
     _dayTransCtrl.value = 1.0;
@@ -163,9 +182,7 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
   }
 
   Future<void> _downloadPdf() async {
-    final overlay = OverlayEntry(
-      builder: (_) => const _LoadingOverlay(),
-    );
+    final overlay = OverlayEntry(builder: (_) => const _LoadingOverlay());
     Overlay.of(context).insert(overlay);
     try {
       await PdfService.generateAndDownloadTravelPlan(widget.travelPlan);
@@ -180,15 +197,22 @@ class _TravelPlanScreenState extends State<TravelPlanScreen>
   }
 
   void _showSnack(String msg, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg,
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
-      backgroundColor: color,
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      duration: const Duration(seconds: 3),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          msg,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 }
 
@@ -204,26 +228,28 @@ class _AmbientOrbs extends StatelessWidget {
       animation: controller,
       builder: (_, __) {
         final t = controller.value * 2 * math.pi;
-        return Stack(children: [
-          _orb(
-            left: size.width * 0.65 + math.sin(t * 0.7) * 40,
-            top: -60 + math.cos(t * 0.5) * 30,
-            diameter: 340,
-            color: _Palette.accent.withOpacity(0.07),
-          ),
-          _orb(
-            left: -80 + math.cos(t * 0.4) * 25,
-            top: size.height * 0.35 + math.sin(t * 0.6) * 40,
-            diameter: 280,
-            color: _Palette.violet.withOpacity(0.05),
-          ),
-          _orb(
-            left: size.width * 0.3 + math.sin(t * 0.3) * 30,
-            top: size.height * 0.72 + math.cos(t * 0.5) * 20,
-            diameter: 200,
-            color: _Palette.sky.withOpacity(0.06),
-          ),
-        ]);
+        return Stack(
+          children: [
+            _orb(
+              left: size.width * 0.65 + math.sin(t * 0.7) * 40,
+              top: -60 + math.cos(t * 0.5) * 30,
+              diameter: 340,
+              color: _Palette.accent.withOpacity(0.07),
+            ),
+            _orb(
+              left: -80 + math.cos(t * 0.4) * 25,
+              top: size.height * 0.35 + math.sin(t * 0.6) * 40,
+              diameter: 280,
+              color: _Palette.violet.withOpacity(0.05),
+            ),
+            _orb(
+              left: size.width * 0.3 + math.sin(t * 0.3) * 30,
+              top: size.height * 0.72 + math.cos(t * 0.5) * 20,
+              diameter: 200,
+              color: _Palette.sky.withOpacity(0.06),
+            ),
+          ],
+        );
       },
     );
   }
@@ -233,16 +259,15 @@ class _AmbientOrbs extends StatelessWidget {
     required double top,
     required double diameter,
     required Color color,
-  }) =>
-      Positioned(
-        left: left,
-        top: top,
-        child: Container(
-          width: diameter,
-          height: diameter,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-        ),
-      );
+  }) => Positioned(
+    left: left,
+    top: top,
+    child: Container(
+      width: diameter,
+      height: diameter,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+    ),
+  );
 }
 
 // ─── Top Bar ─────────────────────────────────────────────────────────────────
@@ -266,11 +291,11 @@ class _TopBar extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       padding: EdgeInsets.symmetric(
-          horizontal: compact ? 16 : 28, vertical: compact ? 12 : 16),
+        horizontal: compact ? 16 : 28,
+        vertical: compact ? 12 : 16,
+      ),
       decoration: BoxDecoration(
-        color: elevated
-            ? Colors.white.withOpacity(0.92)
-            : Colors.transparent,
+        color: elevated ? Colors.white.withOpacity(0.92) : Colors.transparent,
         boxShadow: elevated
             ? [
                 BoxShadow(
@@ -293,59 +318,60 @@ class _TopBar extends StatelessWidget {
   }
 
   Widget _barContent(bool compact) => Row(
-        children: [
-          // Back button
-          _GlassIconButton(
-            icon: Icons.arrow_back_ios_new_rounded,
-            onTap: onBack,
-          ),
-          SizedBox(width: compact ? 12 : 20),
+    children: [
+      // Back button
+      _GlassIconButton(icon: Icons.arrow_back_ios_new_rounded, onTap: onBack),
+      SizedBox(width: compact ? 12 : 20),
 
-          // Title block
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      // Title block
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              plan.title,
+              style: GoogleFonts.poppins(
+                fontSize: compact ? 17 : 22,
+                fontWeight: FontWeight.w700,
+                color: _Palette.ink,
+                letterSpacing: -0.3,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Row(
               children: [
-                Text(
-                  plan.title,
-                  style: GoogleFonts.playfairDisplay(
-                    fontSize: compact ? 17 : 22,
-                    fontWeight: FontWeight.w700,
-                    color: _Palette.ink,
-                    letterSpacing: -0.3,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                const Icon(
+                  Icons.place_rounded,
+                  size: 12,
+                  color: _Palette.muted,
                 ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    const Icon(Icons.place_rounded, size: 12, color: _Palette.muted),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        '${plan.destination}  ·  ${plan.duration}',
-                        style: GoogleFonts.poppins(
-                          fontSize: compact ? 11 : 13,
-                          color: _Palette.muted,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.2,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    '${plan.destination}  ·  ${plan.duration}',
+                    style: GoogleFonts.poppins(
+                      fontSize: compact ? 11 : 13,
+                      color: _Palette.muted,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.2,
                     ),
-                  ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
-          ),
-          SizedBox(width: compact ? 8 : 16),
+          ],
+        ),
+      ),
+      SizedBox(width: compact ? 8 : 16),
 
-          // Export button
-          _ExportButton(compact: compact, onTap: onExport),
-        ],
-      );
+      // Export button
+      _ExportButton(compact: compact, onTap: onExport),
+    ],
+  );
 }
 
 class _GlassIconButton extends StatelessWidget {
@@ -355,17 +381,17 @@ class _GlassIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: _Palette.ink.withOpacity(0.06),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: _Palette.ink, size: 18),
-        ),
-      );
+    onTap: onTap,
+    child: Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: _Palette.ink.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(icon, color: _Palette.ink, size: 18),
+    ),
+  );
 }
 
 class _ExportButton extends StatelessWidget {
@@ -375,44 +401,51 @@ class _ExportButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: EdgeInsets.symmetric(
-              horizontal: compact ? 12 : 18, vertical: compact ? 9 : 11),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [_Palette.accent, _Palette.accentDeep],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: _Palette.accent.withOpacity(0.35),
-                blurRadius: 14,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.picture_as_pdf_rounded, color: Colors.white, size: 16),
-              if (!compact) ...[
-                const SizedBox(width: 8),
-                Text(
-                  'Export PDF',
-                  style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      letterSpacing: 0.2),
-                ),
-              ],
-            ],
-          ),
+    onTap: onTap,
+    child: Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 12 : 18,
+        vertical: compact ? 9 : 11,
+      ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [_Palette.accent, _Palette.accentDeep],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-      );
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: _Palette.accent.withOpacity(0.35),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.picture_as_pdf_rounded,
+            color: Colors.white,
+            size: 16,
+          ),
+          if (!compact) ...[
+            const SizedBox(width: 8),
+            Text(
+              'Export PDF',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
 }
 
 // ─── Desktop Layout ───────────────────────────────────────────────────────────
@@ -432,29 +465,29 @@ class _DesktopLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Sidebar
-          SizedBox(
-            width: 280,
-            child: _DaySidebar(
-              plan: plan,
-              selectedDay: selectedDay,
-              onDaySelect: onDaySelect,
-            ),
-          ),
-          // Content
-          Expanded(
-            child: _DayContent(
-              plan: plan,
-              selectedDay: selectedDay,
-              fadeAnim: fadeAnim,
-              scrollCtrl: scrollCtrl,
-              isDesktop: true,
-            ),
-          ),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // Sidebar
+      SizedBox(
+        width: 280,
+        child: _DaySidebar(
+          plan: plan,
+          selectedDay: selectedDay,
+          onDaySelect: onDaySelect,
+        ),
+      ),
+      // Content
+      Expanded(
+        child: _DayContent(
+          plan: plan,
+          selectedDay: selectedDay,
+          fadeAnim: fadeAnim,
+          scrollCtrl: scrollCtrl,
+          isDesktop: true,
+        ),
+      ),
+    ],
+  );
 }
 
 // ─── Mobile / Tablet Layout ───────────────────────────────────────────────────
@@ -476,20 +509,23 @@ class _MobileTabletLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        children: [
-          _HorizontalDayRail(
-              plan: plan, selectedDay: selectedDay, onDaySelect: onDaySelect),
-          Expanded(
-            child: _DayContent(
-              plan: plan,
-              selectedDay: selectedDay,
-              fadeAnim: fadeAnim,
-              scrollCtrl: scrollCtrl,
-              isDesktop: false,
-            ),
-          ),
-        ],
-      );
+    children: [
+      _HorizontalDayRail(
+        plan: plan,
+        selectedDay: selectedDay,
+        onDaySelect: onDaySelect,
+      ),
+      Expanded(
+        child: _DayContent(
+          plan: plan,
+          selectedDay: selectedDay,
+          fadeAnim: fadeAnim,
+          scrollCtrl: scrollCtrl,
+          isDesktop: false,
+        ),
+      ),
+    ],
+  );
 }
 
 // ─── Day Sidebar (Desktop) ────────────────────────────────────────────────────
@@ -497,69 +533,77 @@ class _DaySidebar extends StatelessWidget {
   final TravelPlan plan;
   final int selectedDay;
   final void Function(int) onDaySelect;
-  const _DaySidebar(
-      {required this.plan, required this.selectedDay, required this.onDaySelect});
+  const _DaySidebar({
+    required this.plan,
+    required this.selectedDay,
+    required this.onDaySelect,
+  });
 
   @override
   Widget build(BuildContext context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(right: BorderSide(color: _Palette.divider)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('YOUR JOURNEY',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2.0,
-                        color: _Palette.accent,
-                      )),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${plan.itinerary.duration_days} Days',
-                    style: GoogleFonts.playfairDisplay(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: _Palette.ink,
-                      height: 1.1,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(plan.destination,
-                      style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: _Palette.muted,
-                          fontWeight: FontWeight.w500)),
-                ],
-              ),
-            ),
-            const Divider(height: 1, color: _Palette.divider),
-            const SizedBox(height: 12),
-            // Day list
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: plan.itinerary.days.length,
-                itemBuilder: (_, i) => _SidebarDayTile(
-                  day: plan.itinerary.days[i],
-                  index: i,
-                  isSelected: selectedDay == i,
-                  onTap: () => onDaySelect(i),
+    decoration: const BoxDecoration(
+      color: Colors.white,
+      border: Border(right: BorderSide(color: _Palette.divider)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'YOUR JOURNEY',
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2.0,
+                  color: _Palette.accent,
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                '${plan.itinerary.duration_days} Days',
+                style: GoogleFonts.poppins(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: _Palette.ink,
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                plan.destination,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: _Palette.muted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
-      );
+        const Divider(height: 1, color: _Palette.divider),
+        const SizedBox(height: 12),
+        // Day list
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemCount: plan.itinerary.days.length,
+            itemBuilder: (_, i) => _SidebarDayTile(
+              day: plan.itinerary.days[i],
+              index: i,
+              isSelected: selectedDay == i,
+              onTap: () => onDaySelect(i),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    ),
+  );
 }
 
 class _SidebarDayTile extends StatelessWidget {
@@ -567,11 +611,12 @@ class _SidebarDayTile extends StatelessWidget {
   final int index;
   final bool isSelected;
   final VoidCallback onTap;
-  const _SidebarDayTile(
-      {required this.day,
-      required this.index,
-      required this.isSelected,
-      required this.onTap});
+  const _SidebarDayTile({
+    required this.day,
+    required this.index,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -582,10 +627,14 @@ class _SidebarDayTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? _Palette.accent.withOpacity(0.1) : Colors.transparent,
+          color: isSelected
+              ? _Palette.accent.withOpacity(0.1)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? _Palette.accent.withOpacity(0.4) : Colors.transparent,
+            color: isSelected
+                ? _Palette.accent.withOpacity(0.4)
+                : Colors.transparent,
           ),
         ),
         child: Row(
@@ -602,7 +651,7 @@ class _SidebarDayTile extends StatelessWidget {
               child: Center(
                 child: Text(
                   '${day.day_number}',
-                  style: GoogleFonts.playfairDisplay(
+                  style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
                     color: isSelected ? Colors.white : _Palette.slate,
@@ -618,7 +667,9 @@ class _SidebarDayTile extends StatelessWidget {
                   Text(
                     'Day ${day.day_number}',
                     style: GoogleFonts.poppins(
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w600,
                       fontSize: 13,
                       color: isSelected ? _Palette.accent : _Palette.inkLight,
                     ),
@@ -642,7 +693,9 @@ class _SidebarDayTile extends StatelessWidget {
                 width: 6,
                 height: 6,
                 decoration: const BoxDecoration(
-                    color: _Palette.accent, shape: BoxShape.circle),
+                  color: _Palette.accent,
+                  shape: BoxShape.circle,
+                ),
               ),
           ],
         ),
@@ -656,8 +709,11 @@ class _HorizontalDayRail extends StatefulWidget {
   final TravelPlan plan;
   final int selectedDay;
   final void Function(int) onDaySelect;
-  const _HorizontalDayRail(
-      {required this.plan, required this.selectedDay, required this.onDaySelect});
+  const _HorizontalDayRail({
+    required this.plan,
+    required this.selectedDay,
+    required this.onDaySelect,
+  });
 
   @override
   State<_HorizontalDayRail> createState() => _HorizontalDayRailState();
@@ -671,66 +727,74 @@ class _HorizontalDayRailState extends State<_HorizontalDayRail> {
     super.didUpdateWidget(old);
     if (old.selectedDay != widget.selectedDay) {
       final target = widget.selectedDay * 88.0;
-      _scroll.animateTo(target.clamp(0, _scroll.position.maxScrollExtent),
-          duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+      _scroll.animateTo(
+        target.clamp(0, _scroll.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) => Container(
-        height: 76,
-        color: Colors.white,
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                controller: _scroll,
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                itemCount: widget.plan.itinerary.days.length,
-                itemBuilder: (_, i) {
-                  final day = widget.plan.itinerary.days[i];
-                  final sel = widget.selectedDay == i;
-                  return GestureDetector(
-                    onTap: () => widget.onDaySelect(i),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 220),
-                      margin: const EdgeInsets.only(right: 10),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: sel ? _Palette.accent : _Palette.surface,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: sel
-                            ? [
-                                BoxShadow(
-                                  color: _Palette.accent.withOpacity(0.35),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                )
-                              ]
-                            : [],
+    height: 76,
+    color: Colors.white,
+    child: Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            controller: _scroll,
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            itemCount: widget.plan.itinerary.days.length,
+            itemBuilder: (_, i) {
+              final day = widget.plan.itinerary.days[i];
+              final sel = widget.selectedDay == i;
+              return GestureDetector(
+                onTap: () => widget.onDaySelect(i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  margin: const EdgeInsets.only(right: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: sel ? _Palette.accent : _Palette.surface,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: sel
+                        ? [
+                            BoxShadow(
+                              color: _Palette.accent.withOpacity(0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : [],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'DAY ${day.day_number}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: sel ? Colors.white : _Palette.muted,
+                          letterSpacing: 0.8,
+                        ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('DAY ${day.day_number}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: sel ? Colors.white : _Palette.muted,
-                                letterSpacing: 0.8,
-                              )),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Container(height: 1, color: _Palette.divider),
-          ],
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
         ),
-      );
+        Container(height: 1, color: _Palette.divider),
+      ],
+    ),
+  );
 }
 
 // ─── Day Content ─────────────────────────────────────────────────────────────
@@ -817,7 +881,10 @@ class _CinematicDayHeader extends StatelessWidget {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.18),
                       borderRadius: BorderRadius.circular(10),
@@ -845,16 +912,25 @@ class _CinematicDayHeader extends StatelessWidget {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: _Palette.accent.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: _Palette.accent.withOpacity(0.4)),
+                      border: Border.all(
+                        color: _Palette.accent.withOpacity(0.4),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.route_rounded, color: Colors.white, size: 13),
+                        const Icon(
+                          Icons.route_rounded,
+                          color: Colors.white,
+                          size: 13,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           '${day.activities.length} Stops',
@@ -880,7 +956,7 @@ class _CinematicDayHeader extends StatelessWidget {
                 children: [
                   Text(
                     day.theme,
-                    style: GoogleFonts.playfairDisplay(
+                    style: GoogleFonts.poppins(
                       fontSize: isDesktop ? 30 : 24,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -915,26 +991,29 @@ class _MiniPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: style.color.withOpacity(0.25),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: style.color.withOpacity(0.4)),
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: style.color.withOpacity(0.25),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: style.color.withOpacity(0.4)),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(style.icon, size: 10, color: Colors.white),
+        const SizedBox(width: 4),
+        Text(
+          style.label,
+          style: GoogleFonts.poppins(
+            fontSize: 9,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: 0.8,
+          ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(style.icon, size: 10, color: Colors.white),
-            const SizedBox(width: 4),
-            Text(style.label,
-                style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 0.8)),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 }
 
 // ─── Activity Timeline ────────────────────────────────────────────────────────
@@ -945,15 +1024,15 @@ class _ActivityTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        children: activities.asMap().entries.map((e) {
-          return _TimelineItem(
-            activity: e.value,
-            index: e.key,
-            isLast: e.key == activities.length - 1,
-            isDesktop: isDesktop,
-          );
-        }).toList(),
+    children: activities.asMap().entries.map((e) {
+      return _TimelineItem(
+        activity: e.value,
+        index: e.key,
+        isLast: e.key == activities.length - 1,
+        isDesktop: isDesktop,
       );
+    }).toList(),
+  );
 }
 
 class _TimelineItem extends StatelessWidget {
@@ -1012,10 +1091,7 @@ class _TimelineItem extends StatelessWidget {
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [
-                            cs.color.withOpacity(0.4),
-                            _Palette.divider,
-                          ],
+                          colors: [cs.color.withOpacity(0.4), _Palette.divider],
                         ),
                         borderRadius: BorderRadius.circular(2),
                       ),
@@ -1030,7 +1106,10 @@ class _TimelineItem extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.only(bottom: isLast ? 0 : 24),
               child: _ActivityCard(
-                  activity: activity, cs: cs, isDesktop: isDesktop),
+                activity: activity,
+                cs: cs,
+                isDesktop: isDesktop,
+              ),
             ),
           ),
         ],
@@ -1044,8 +1123,11 @@ class _ActivityCard extends StatefulWidget {
   final Activity activity;
   final _CategoryStyle cs;
   final bool isDesktop;
-  const _ActivityCard(
-      {required this.activity, required this.cs, required this.isDesktop});
+  const _ActivityCard({
+    required this.activity,
+    required this.cs,
+    required this.isDesktop,
+  });
 
   @override
   State<_ActivityCard> createState() => _ActivityCardState();
@@ -1088,9 +1170,11 @@ class _ActivityCardState extends State<_ActivityCard> {
               height: 4,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                    colors: [cs.color, cs.color.withOpacity(0.3)]),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(20)),
+                  colors: [cs.color, cs.color.withOpacity(0.3)],
+                ),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
               ),
             ),
             Padding(
@@ -1101,7 +1185,11 @@ class _ActivityCardState extends State<_ActivityCard> {
                   // Meta row
                   Row(
                     children: [
-                      _Chip(label: a.time, icon: Icons.access_time_rounded, color: _Palette.accent),
+                      _Chip(
+                        label: a.time,
+                        icon: Icons.access_time_rounded,
+                        color: _Palette.accent,
+                      ),
                       const SizedBox(width: 8),
                       _Chip(label: cs.label, icon: cs.icon, color: cs.color),
                     ],
@@ -1111,7 +1199,7 @@ class _ActivityCardState extends State<_ActivityCard> {
                   // Name
                   Text(
                     a.location.name,
-                    style: GoogleFonts.playfairDisplay(
+                    style: GoogleFonts.poppins(
                       fontSize: widget.isDesktop ? 20 : 18,
                       fontWeight: FontWeight.w700,
                       color: _Palette.ink,
@@ -1124,14 +1212,19 @@ class _ActivityCardState extends State<_ActivityCard> {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(Icons.location_on_rounded,
-                            size: 13, color: _Palette.muted),
+                        Icon(
+                          Icons.location_on_rounded,
+                          size: 13,
+                          color: _Palette.muted,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             a.location.address,
                             style: GoogleFonts.poppins(
-                                fontSize: 12, color: _Palette.muted),
+                              fontSize: 12,
+                              color: _Palette.muted,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -1157,18 +1250,24 @@ class _ActivityCardState extends State<_ActivityCard> {
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: _Palette.gold.withOpacity(0.07),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: _Palette.gold.withOpacity(0.25)),
+                          color: _Palette.gold.withOpacity(0.25),
+                        ),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.auto_awesome_rounded,
-                              color: _Palette.gold, size: 14),
+                          const Icon(
+                            Icons.auto_awesome_rounded,
+                            color: _Palette.gold,
+                            size: 14,
+                          ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -1195,18 +1294,24 @@ class _ActivityCardState extends State<_ActivityCard> {
                         onTap: () => _openMap(context, a.location.maps_link),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 9),
+                            horizontal: 16,
+                            vertical: 9,
+                          ),
                           decoration: BoxDecoration(
                             color: _Palette.accent.withOpacity(0.08),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                                color: _Palette.accent.withOpacity(0.25)),
+                              color: _Palette.accent.withOpacity(0.25),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.map_outlined,
-                                  size: 14, color: _Palette.accent),
+                              const Icon(
+                                Icons.map_outlined,
+                                size: 14,
+                                color: _Palette.accent,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 'Open in Maps',
@@ -1249,46 +1354,55 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.25)),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    decoration: BoxDecoration(
+      color: color.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: color.withOpacity(0.25)),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 11, color: color),
+        const SizedBox(width: 5),
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: color,
+            letterSpacing: 0.3,
+          ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 11, color: color),
-            const SizedBox(width: 5),
-            Text(label,
-                style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                    letterSpacing: 0.3)),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 }
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
 class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.explore_off_rounded,
-                size: 56, color: _Palette.muted.withOpacity(0.4)),
-            const SizedBox(height: 16),
-            Text('No activities yet',
-                style: GoogleFonts.playfairDisplay(
-                    fontSize: 20,
-                    color: _Palette.muted,
-                    fontWeight: FontWeight.w600)),
-          ],
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.explore_off_rounded,
+          size: 56,
+          color: _Palette.muted.withOpacity(0.4),
         ),
-      );
+        const SizedBox(height: 16),
+        Text(
+          'No activities yet',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            color: _Palette.muted,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 // ─── Loading Overlay ──────────────────────────────────────────────────────────
@@ -1297,51 +1411,58 @@ class _LoadingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: Colors.black54,
-        child: Center(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 28),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 40,
-                        offset: const Offset(0, 10))
-                  ],
+    color: Colors.black54,
+    child: Center(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 28),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 40,
+                  offset: const Offset(0, 10),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: CircularProgressIndicator(
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(_Palette.accent),
-                        strokeWidth: 3,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Text('Generating PDF…',
-                        style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: _Palette.ink)),
-                    const SizedBox(height: 4),
-                    Text('This won\'t take long',
-                        style: GoogleFonts.poppins(
-                            fontSize: 12, color: _Palette.muted)),
-                  ],
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(_Palette.accent),
+                    strokeWidth: 3,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 18),
+                Text(
+                  'Generating PDF…',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: _Palette.ink,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'This won\'t take long',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: _Palette.muted,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
